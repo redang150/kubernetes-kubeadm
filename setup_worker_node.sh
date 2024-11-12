@@ -73,7 +73,7 @@ INTERFACE="enp0s8"
 IP_ADDRESS=$(ip -4 addr show $INTERFACE | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 
 # Verify connectivity to the master node (replace with the master’s IP address)
-MASTER_IP="<master_private_ip>"  # Replace with actual master IP
+MASTER_IP="192.168.1.206"  # Replace with actual master IP
 
 echo "Checking connectivity to master node at $MASTER_IP..."
 if ! ping -c 4 $MASTER_IP; then
