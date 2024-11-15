@@ -68,4 +68,4 @@ aws s3 mb s3://<bucket_name> --region <region>
 kops export kubecfg --name ${NAME} --admin
 
 
-
+kops export kubecfg --name ${CLUSTER_NAME} --state ${KOPS_STATE_STORE} --admin

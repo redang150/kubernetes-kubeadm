@@ -8,12 +8,15 @@ export NAME="dominionclass37.k8s.local"
 export KOPS_STATE_STORE="s3://dominionclass37-state-store"
 AWS_REGION="us-east-2"
 S3_BUCKET="dominionclass37-state-store"
+COMMAND_TIMEOUT=300  # Timeout for AWS CLI commands
+MAX_RETRIES=3  # Number of retries for deletion commands
+RETRY_DELAY=10  # Delay between retries in seconds
 
 # Step 1: Delete the Kubernetes cluster
 echo "Checking if Kubernetes cluster exists..."
 if kops get cluster --name ${NAME} --state ${KOPS_STATE_STORE} --region ${AWS_REGION} > /dev/null 2>&1; then
   echo "Cluster ${NAME} found. Proceeding with deletion..."
-  
+
   # Delete the Kubernetes cluster
   kops delete cluster --name ${NAME} --yes --state ${KOPS_STATE_STORE} --region ${AWS_REGION}
 else
@@ -43,19 +46,41 @@ else
 fi
 
 # Step 3: Delete Load Balancers
-echo "Deleting network load balancers..."
-LB_ARNs=$(aws elbv2 describe-load-balancers \
+echo "Deleting target groups and associated network load balancers..."
+# Find all load balancers associated with the cluster
+LB_ARNS=$(aws elbv2 describe-load-balancers \
   --query "LoadBalancers[?contains(LoadBalancerName, '${NAME}')].LoadBalancerArn" \
   --output text \
   --region ${AWS_REGION})
-if [ -n "$LB_ARNs" ]; then
-  for lb_arn in $LB_ARNs; do
+
+if [ -n "$LB_ARNS" ]; then
+  for lb_arn in $LB_ARNS; do
+    echo "Processing Load Balancer: $lb_arn"
+
+    # Find target groups associated with each load balancer
+    TARGET_GROUP_ARNS=$(aws elbv2 describe-target-groups \
+      --query "TargetGroups[?LoadBalancerArns[0]=='${lb_arn}'].TargetGroupArn" \
+      --output text \
+      --region ${AWS_REGION})
+
+    # Delete target groups associated with the load balancer
+    if [ -n "$TARGET_GROUP_ARNS" ]; then
+      for tg_arn in $TARGET_GROUP_ARNS; do
+        echo "Deleting Target Group: $tg_arn"
+        retry_command timeout $COMMAND_TIMEOUT aws elbv2 delete-target-group --target-group-arn $tg_arn --region ${AWS_REGION}
+      done
+    else
+      echo "No target groups found for load balancer $lb_arn."
+    fi
+
+    # Delete the load balancer after deleting target groups
     echo "Deleting Load Balancer: $lb_arn"
-    aws elbv2 delete-load-balancer --load-balancer-arn $lb_arn --region ${AWS_REGION} || echo "Error deleting Load Balancer $lb_arn. It may already be deleted."
+    retry_command timeout $COMMAND_TIMEOUT aws elbv2 delete-load-balancer --load-balancer-arn $lb_arn --region ${AWS_REGION}
   done
 else
   echo "No load balancers found for the cluster ${NAME}."
 fi
+
 
 # Step 4: Terminate EC2 instances associated with the cluster
 echo "Terminating EC2 instances..."
@@ -133,5 +158,3 @@ else
 fi
 
 echo "All resources have been deleted."
-
-

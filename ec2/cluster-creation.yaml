@@ -1,0 +1,98 @@
+Deploying a self-managed Kubernetes cluster in AWS with one master node and two worker nodes requires a structured approach, ensuring that each component is configured correctly for Kubernetes networking, container runtime, and inter-node communication. Here’s a step-by-step guide:
+
+Prerequisites
+AWS Account: Ensure you have an AWS account with permissions to create and manage EC2 instances, VPCs, security groups, and IAM roles.
+VPC and Subnets: Ideally, create a VPC with public or private subnets for your cluster. All nodes should be in the same VPC and subnet to allow inter-node communication.
+IAM Role: Create an IAM role with permissions for EC2 and attach it to each node. You can use the AmazonEC2RoleforSSM policy for managing instances via Systems Manager.
+Step 1: Setting up the VPC and Networking
+VPC: Create a VPC with CIDR 10.0.0.0/16.
+Subnets: Add two subnets within the VPC, one in each availability zone for redundancy.
+Internet Gateway: Attach an internet gateway to the VPC for instances to communicate with the internet if required.
+Route Table: Create a route table associated with the subnets to route traffic through the internet gateway.
+
+Step 2: Create Security Groups
+Master Node Security Group:
+Allow SSH (Port 22) from your IP address.
+Allow Kubernetes API server traffic (Port 6443) from the security group assigned to the worker nodes.
+
+Worker Node Security Group:
+Allow SSH (Port 22) from your IP address.
+Allow inter-node communication for Kubernetes components (Ports 10250, 10255, 30000-32767).
+Allow all traffic from the master node’s security group.
+
+Step 3: Launch EC2 Instances
+Master Node:
+Instance Type: t3.medium or higher.
+AMI: Amazon Linux 2 or Ubuntu 20.04 LTS.
+Attach the security group created for the master node.
+Configure the IAM role for Systems Manager access if desired.
+Worker Nodes (2 instances):
+Instance Type: t3.medium or higher.
+AMI: Amazon Linux 2 or Ubuntu 20.04 LTS.
+Attach the worker node security group.
+Configure the IAM role for Systems Manager access if desired.
+Step 4: Install Kubernetes on the Master Node
+SSH into the master node instance.
+
+sudo hostnamectl set-hostname kubemaster
+sudo -i
+
+Execute the master node setup script
+
+After running the script, initialize the Kubernetes control plane with kubeadm init.
+
+Note down the kubeadm join command displayed at the end of the initialization, as you will use it to add worker nodes to the cluster.
+
+Configure kubectl on the master:
+
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+Install Network Plugin:
+
+Install the Flannel network plugin to enable pod networking:
+
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+Step 5: Install Kubernetes on the Worker Nodes
+
+SSH into each worker node instance.
+sudo hostnamectl set-hostname kubenode01
+sudo -i
+
+sudo hostnamectl set-hostname kubenode02
+sudo -i
+
+Execute the worker node setup script.
+
+Once the setup script completes, run the kubeadm join command from Step 4 on each worker node to join the cluster.
+Step 6: Verify Cluster Status
+SSH into the master node.
+Use kubectl to verify that the worker nodes have joined the cluster:
+
+kubectl get nodes
+All nodes should appear with a status of Ready.
+Step 7: Testing and Validation
+Deploy a Test Application:
+
+Deploy a simple Nginx pod to verify that the cluster is working correctly.
+bash
+Copy code
+kubectl create deployment nginx --image=nginx
+kubectl expose deployment nginx --port=80 --type=NodePort
+Access the Nginx Service:
+
+Use the kubectl get svc command to get the NodePort and access the service via the worker node's IP and port.
+Step 8: Set up Persistent Storage (Optional)
+EBS Volumes: If you require persistent storage, create an EBS volume and attach it to one of the worker nodes.
+Configure StorageClass: Set up a StorageClass in Kubernetes to use EBS volumes dynamically.
+Step 9: Enable Monitoring (Optional)
+CloudWatch: Set up CloudWatch to monitor CPU, memory, and disk usage.
+Prometheus/Grafana: Consider deploying Prometheus and Grafana on your Kubernetes cluster for in-depth monitoring and visualization.
+Additional Recommendations
+IAM Roles for Service Accounts: Use IAM roles for service accounts to allow specific pods to access AWS services securely.
+Cluster Autoscaler: Configure the Kubernetes Cluster Autoscaler to dynamically adjust the number of nodes in your cluster based on resource utilization.
+Kubernetes Dashboard: Set up the Kubernetes Dashboard for an easy web-based interface to manage and monitor your cluster.
+Following these steps will set up a basic Kubernetes cluster in AWS using kubeadm, giving you control over each component while leveraging AWS’s cloud infrastructure.
+
+Run the command below in the master node to reprint join command for worker nodes:
+kubeadm token create --print-join-command
