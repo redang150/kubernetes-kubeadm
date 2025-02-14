@@ -3,6 +3,9 @@
 # Exit on any error
 set -e
 
+#Setting hostname for control plane nodes
+sudo hostnamectl set-hostname kube-worker-node
+
 # Update system and install necessary dependencies
 echo "Updating system and installing prerequisites..."
 sudo apt-get update -y

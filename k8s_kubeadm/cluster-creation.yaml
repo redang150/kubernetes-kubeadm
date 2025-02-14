@@ -23,12 +23,12 @@ Allow all traffic from the master node’s security group.
 Step 3: Launch EC2 Instances
 Master Node:
 Instance Type: t3.medium or higher.
-AMI: Amazon Linux 2 or Ubuntu 22.04 LTS.
+AMI: Ubuntu 22.04 LTS.
 Attach the security group created for the master node.
 Configure the IAM role for Systems Manager access if desired.
 Worker Nodes (2 instances):
-Instance Type: t3.micro or higher.
-AMI: Amazon Linux 2 or Ubuntu 22.04 LTS.
+Instance Type: t2.micro or higher.
+AMI:  Ubuntu 22.04 LTS.
 Attach the worker node security group.
 Configure the IAM role for Systems Manager access if desired.
 Step 4: Install Kubernetes on the Master Node

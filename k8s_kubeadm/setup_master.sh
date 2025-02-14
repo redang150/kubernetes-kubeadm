@@ -1,9 +1,10 @@
 #!/bin/bash
 
+#Part 1
 # Exit on any error
 set -e
 #Setting hostname for control plane nodes
-sudo hostnamectl set-hostname kubemaster
+sudo hostnamectl set-hostname kube-master-node
 
 # Update system and install necessary dependencies
 echo "Updating system and installing prerequisites..."
@@ -57,6 +58,9 @@ echo "Installing kubeadm, kubelet, and kubectl..."
 sudo apt-get update -y
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
+
+
+#Part 2
 
 # Initialize Kubernetes cluster
 echo "Initializing Kubernetes cluster..."
