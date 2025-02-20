@@ -4,15 +4,15 @@
 # Description: Script to deploy a highly available Kubernetes cluster with kops and necessary network setup
 
 # Configuration
-CLUSTER_NAME="dominionclass37.k8s.local"
-S3_BUCKET="dominionclass37-state-store"
+CLUSTER_NAME="dominionclass38.k8s.local"
+S3_BUCKET="dominionclass38-state-store"
 AWS_REGION="us-east-2"
 K8S_VERSION="1.29.6"
 NODE_COUNT=2
 NODE_SIZE="t3.medium"
 CONTROL_PLANE_SIZE="t3.medium"
 ZONES="${AWS_REGION}a,${AWS_REGION}b,${AWS_REGION}c"
-DNS_ZONE="dominionclass37.k8s.local"
+DNS_ZONE="dominionclass38.k8s.local"
 MAX_RETRIES=3  # Number of retries for certain commands
 
 # Step 1: Update packages and install necessary dependencies

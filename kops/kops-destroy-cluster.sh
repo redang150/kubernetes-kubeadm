@@ -4,10 +4,10 @@
 # Description: Script to destroy all resources created by the Kubernetes deployment script
 
 # Set environment variables for kops (same as in the setup script)
-export NAME="dominionclass37.k8s.local"
-export KOPS_STATE_STORE="s3://dominionclass37-state-store"
+export NAME="dominionclass38.k8s.local"
+export KOPS_STATE_STORE="s3://dominionclass38-state-store"
 AWS_REGION="us-east-2"
-S3_BUCKET="dominionclass37-state-store"
+S3_BUCKET="dominionclass38-state-store"
 COMMAND_TIMEOUT=300  # Timeout for AWS CLI commands
 MAX_RETRIES=3  # Number of retries for deletion commands
 RETRY_DELAY=10  # Delay between retries in seconds
