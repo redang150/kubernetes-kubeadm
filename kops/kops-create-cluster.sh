@@ -16,9 +16,10 @@ DNS_ZONE="dominionclass38.k8s.local"
 MAX_RETRIES=3  # Number of retries for certain commands
 
 # Step 1: Update packages and install necessary dependencies
-echo "Updating packages and installing prerequisites..."
-sudo yum update -y  # Change to apt-get if using Ubuntu
-sudo yum install -y jq curl unzip awscli
+sudo apt install unzip -y
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
 
 # Step 2: Install kops
 echo "Installing kops..."
